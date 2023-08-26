@@ -26,5 +26,5 @@ class BookStack(Stack):
             self.push(other.pop())
         return self
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.__len
