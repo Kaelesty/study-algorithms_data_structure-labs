@@ -43,7 +43,7 @@ class View:
                 self.BLACK_RGB if node.color == BLACK else self.RED_RBG,
                 (x, y), 20
             )
-            text = self.font.render(str(node.car.price), True, self.BLACK_RGB, self.WHITE_RBG)
+            text = self.font.render(("R" if node.isRoot else "") + str(node.car.price), True, self.BLACK_RGB, self.WHITE_RBG)
             newY = y + 50
             self.drawNode(node.left, x - 20 * nesting - (100 if isFirst else 0), newY, x, y, True, nesting - 1)
             self.drawNode(node.right, x + 20 * nesting + (100 if isFirst else 0), newY, x, y, False, nesting - 1)
