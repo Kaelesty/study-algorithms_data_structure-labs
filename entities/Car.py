@@ -9,13 +9,13 @@ class Car:
         self.averageSpeed = averageSpeed
 
     def __str__(self):
-        return f"[{self.averageSpeed}]"
+        return f"[{self.vin}]"
 
 
 def getRandomCar():
     return Car(
         f"brand #{randint(0, 50)}",
-        randint(0, 50),
+        randint(0, 10),
         randint(0, 50),
         randint(0, 50),
         randint(0, 50),
