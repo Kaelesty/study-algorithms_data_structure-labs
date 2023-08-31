@@ -1,158 +1,305 @@
+"""
+1. Каждый узел является красным или черным.
+2. Корень дерева является черным.
+3. Каждый лист дерева ( NIL) является черным.
+4. Если узел — красный, то оба его дочерних узла — черные.
+5. Для каждого узла все пути от него до листьев, являющихся потомками
+данного узла, содержат одно и то же количество черных узлов.
+
+"""
+
+import json
+
 BLACK = 0
 RED = 1
 
-ROOT = 4
-LEFT_BRANCH = 5
-RIGHT_BRANCH = 6
+from entities.Car import carFromDict
 
-from Car import Car
+
+def leftRotate(node, repaint=False):
+    y = node.right
+    node.right = y.left
+
+    if y.left.isLeaf():
+        y.left.parent = node
+
+    y.parent = node.parent
+
+    if node.isRoot:
+        node.container.root = y
+        y.isRoot = True
+        node.isRoot = False
+    else:
+        if node == node.parent.left:
+            node.parent.left = y
+        else:
+            node.parent.right = y
+    y.left = node
+    node.parent = y
+    if repaint:
+        node.switchColour()
+
+
+def rightRotate(node, repaint=False):
+    y = node.left
+    node.left = y.right
+
+    if not y.right.isLeaf():
+        y.right.parent = node
+
+    y.parent = node.parent
+
+    if node.isRoot:
+        node.container.root = y
+        y.isRoot = True
+        node.isRoot = False
+
+    else:
+        if node == node.parent.left:
+            node.parent.left = y
+        else:
+            node.parent.right = y
+    y.right = node
+    node.parent = y
+    if repaint:
+        node.switchColour()
+
+
+def rbInsertFixup(node):
+    while True:
+        if node.parent.isContainer:
+            break
+        if node.parent.parent.isContainer:
+            if node.color == RED and node.parent.color == RED:
+                if node.parent.right == node:
+                    leftRotate(node.parent, True)
+                else:
+                    if node.parent.right.color == BLACK:
+                        rightRotate(node.parent, True)
+            break
+        if node.parent.color != RED:
+            break
+
+        if node.parent == node.parent.parent.left:
+            y = node.parent.parent.right
+            if y.color == RED:
+                node.parent.color = BLACK
+                y.color = BLACK
+                node.parent.parent.color = RED
+                node = node.parent.parent
+            elif node == node.parent.right:
+                node = node.parent
+                leftRotate(node)
+                break
+            else:
+                node.parent.color = BLACK
+                node.parent.parent.color = RED
+                rightRotate(node.parent.parent)
+                break
+        else:
+            y = node.parent.parent.left
+            if y.color == RED:
+                node.parent.color = BLACK
+                y.color = BLACK
+                node.parent.parent.color = RED
+                node = node.parent.parent
+            elif node == node.parent.left:
+                node = node.parent
+                rightRotate(node)
+                break
+            else:
+                node.parent.color = BLACK
+                node.parent.parent.color = RED
+                leftRotate(node.parent.parent)
+                break
+
+
+def rbDeleteFixup(node):
+    pass
 
 
 class rbtContainer:
 
     def __init__(self):
-        self.root = rbtLeaf()
+        self.leaf = rbtLeaf()
+        self.root = self.leaf
+        self.isContainer = True
 
-    def insert(self, car):
-        if isinstance(self.root, rbtLeaf):
+    def insert(self, value):
+        if self.root.isLeaf():
             self.root = rbtNode(
-                car, self, self, ROOT, True
+                value, self, self, self.leaf, True
             )
         else:
-            self.root.insert(car)
-
-    def repaint(self):
-        self.root.switchColor()
+            self.root.insert(value)
+        self.root.color = BLACK
 
     def find(self, key):
         pass
 
     def delete(self, key):
+        self.root.delete(key)
+
+    def toJson(self):
+        return json.dumps(self.toDict())
+
+    def toDict(self):
+        return {
+            "root": self.root.toDict()
+        }
+
+    def fromJson(self, jsonString):
+        raw = json.loads(jsonString)
+        self.root = self.nodeFromDict(raw["root"], self, True)
+
+    def nodeFromDict(self, raw, parent, rootNode=False):
+        if raw["value"] == "LEAF":
+            return self.leaf
+
+        node = rbtNode(
+            carFromDict(raw["value"]),
+            parent,
+            self,
+            self.leaf,
+            rootNode,
+            True
+        )
+
+        node.color = BLACK if raw["color"] == "BLACK" else RED
+
+        node.right = self.nodeFromDict(raw["right"], node)
+        node.left = self.nodeFromDict(raw["left"], node)
+        return node
+
+
+
+
+class rbtLeaf:
+    def __init__(self):
+        self.color = BLACK
+        self.isContainer = False
+
+    def isLeaf(self):
+        return True
+
+    def delete(self, key):
         pass
 
-    def getOtherChildColor(self, key):
-        return None
+    def toDict(self):
+        return {
+            "value": "LEAF"
+        }
 
-    def rotateChild(self, rotateType, branchToRotate):
-        def rotateRight(branch):
-            root = self.root
-            root.isRoot = False
-            newRoot = root.left
-            root.left = newRoot.right
-            root = newRoot
-            self.root = root
-            self.root.isRoot = True
-
-        def rotateLeft(branch):
-            root = self.root
-            root.isRoot = False
-            newRoot = root.right
-            root.right = newRoot.left
-            newRoot.left = root
-            root = newRoot
-            self.root = root
-            self.root.isRoot = True
-
-        try:
-            if rotateType == LEFT_BRANCH:
-                rotateRight(branchToRotate)
-            else:
-                rotateLeft(branchToRotate)
-        except AttributeError:
-            print("rotate failed")
+    def switchColour(self):
+        pass
 
 
 class rbtNode:
-
-    def __init__(self, car, container, parent, branch, isRoot=False):
+    def __init__(self, value, parent, container, leaf, isRoot=False, balanceChecked=False):
+        self.value = value
+        self.right = leaf
+        self.left = leaf
         self.parent = parent
-        self.car = car
-        self.container = container
-        self.left = rbtLeaf()
-        self.right = rbtLeaf()
         self.isRoot = isRoot
-        self.branch = branch
+        self.container = container
+        self.isContainer = False
 
         if isRoot:
             self.color = BLACK
         else:
             self.color = RED
+            if not balanceChecked:
+                rbInsertFixup(self)
 
-            # we should check tree balance
-            if isRoot or self.parent.color == BLACK:
-                return  # balance is fine
+    def toDict(self):
+        return {
+            "value": self.value.toDict(),
+            "color": "BLACK" if self.color == BLACK else "RED",
+            "isRoot": self.isRoot,
+            "right": self.right.toDict(),
+            "left": self.left.toDict()
+        }
 
-            uncleColor = self.getUncleColor()
-
-            if uncleColor is None:
-                print("balance is fine")
-                return  # grandfather is container, don't need to rebalance
-
-            if uncleColor == RED:  # balance is broken, but can be fixed by simple repaint
-                print("balance is broken, repainting")
-                #self.color = BLACK  # will be changed to RED during container.repaint()
-                self.container.repaint()
-            else:  # balance is broken, can be fixed by rotating
-                print("balance is broken, rotating")
-                self.color = BLACK  # will be changed to RED during repaint()
-                self.parent.parent.rotate(branch)
-
-    def rotate(self, branch):
-        self.parent.rotateChild(branch, self.branch)
-        #self.switchColor()
-
-
-    def rotateChild(self, initBranch, branchToRotate):
-        # todo
-        pass
-
-
-    def getUncleColor(self):
-        return self.parent.getBrotherColor()
-
-    def getBrotherColor(self):
-        return self.parent.getOtherChildColor(self.car.price)
-
-    def getOtherChildColor(self, key):
-        if isinstance(self.right, rbtLeaf) or isinstance(self.left, rbtLeaf):
-            return BLACK
-
-        if self.right.car.price == key:
-            return self.left.color
-        return self.right.color
-
-    def insert(self, car):
-
-        if self.car.price > car.price:
-
-            if isinstance(self.left, rbtLeaf):
-                self.left = rbtNode(
-                    car, self.container, self, LEFT_BRANCH
-                )
-            else:
-                self.left.insert(car)
-
-        elif self.car.price < car.price:
-
-            if isinstance(self.right, rbtLeaf):
-                self.right = rbtNode(
-                    car, self.container, self, RIGHT_BRANCH
-                )
-            else:
-                self.right.insert(car)
-
-        else:  # car.price == self.car.price
-            self.car = car
-
-    def switchColor(self):
+    def switchColour(self):
         self.color = RED if self.color == BLACK else BLACK
-        self.left.switchColor()
-        self.right.switchColor()
+        self.left.switchColour()
+        self.right.switchColour()
 
+    def isLeaf(self):
+        return False
 
-class rbtLeaf:
-    def __init__(self):
-        self.color = None
+    def insert(self, value):
 
-    def switchColor(self):
-        pass
+        if self.value.price < value.price:
+
+            # to right branch
+            if self.right.isLeaf():
+                self.right = rbtNode(value, self, self.container, self.right)
+            else:
+                self.right.insert(value)
+
+        elif self.value.price > value.price:
+
+            # to left branch
+            if self.left.isLeaf():
+                self.left = rbtNode(value, self, self.container, self.left)
+            else:
+                self.left.insert(value)
+
+        else:
+
+            self.value = value
+
+    def delete(self, key):
+
+        if key > self.value.price:
+            self.right.delete(key)
+        elif key < self.value.price:
+            self.left.delete(key)
+        else:
+            self.annihilate()
+
+    def annihilate(self):
+        if self.left.isLeaf() and self.right.isLeaf():
+
+            if self.parent.left == self:
+                self.parent.left = self.left  # left is leaf ^^^
+
+            else:
+                self.parent.right = self.left
+
+        elif self.left.isLeaf():
+
+            if self.parent.left == self:
+                self.parent.left = self.right
+                # todo: need to fix colours
+
+            else:
+                self.parent.right = self.right
+                # todo: need to fix colours
+
+        elif self.right.isLeaf():
+
+            if self.parent.left == self:
+                self.parent.left = self.left
+                # todo: need to fix colours
+
+            else:
+                self.parent.right = self.left
+                # todo: need to fix colours
+
+        else:
+
+            value, color = self.right.takeLeftest()
+            self.value = value
+            self.color = color
+
+            if color == BLACK:
+                pass
+                # todo: need to fix colours
+
+    def takeLeftest(self):
+        if self.left.isLeaf():
+            self.annihilate()
+            return self.value, self.color
+        return self.left.takeLeftestValue()
