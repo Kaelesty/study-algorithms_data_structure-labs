@@ -15,24 +15,21 @@ T = TypeVar('T')
 
 class MyStack(Generic[T]):
     def __init__(self, initial_items: Optional[list[T]] = None) -> None:
-        self.items: list[T] = []
+        self.__items: list[T] = []
         if initial_items is not None:
-            self.items = initial_items
+            self.__items = initial_items
 
     def empty(self) -> bool:
-        return len(self.items) == 0
+        return len(self.__items) == 0
 
     def push(self, item: T) -> MyStack:
-        self.items += [item]
+        self.__items += [item]
         return self
 
     def pop(self) -> T:
         if self.empty():
             raise RuntimeError("Can't pop empty stack")
-        return self.items.pop()
-
-    def empty(self) -> bool:
-        return len(self.items) == 0
+        return self.__items.pop()
     
-    def __eq__(self, other):
-        return self.items == other.items
+    def __eq__(self, other: MyStack[T]):
+        return self.__items == other.__items

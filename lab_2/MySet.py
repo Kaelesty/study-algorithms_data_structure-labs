@@ -4,10 +4,6 @@
 Также реализуйте 2 варианта проверки вхождения элемента в структуру данных,
 метод intersect для выполнения такой операции над множествами, как пересечение
 и метод union для выполнения такой операции над множествами, как объединение.
-
-Вопросы:
-Type Hinting: жестко указанный тип, typing.Any или typing.Generic?
-Два метода проверки вхождения: два варианта поиска (условно линейный и бинарный)?
 """
 from __future__ import annotations
 
@@ -19,48 +15,44 @@ T = TypeVar('T')
 
 class MySet(Generic[T]):
     def __init__(self, initial_items: Optional[list[T]] = None) -> None:
-        self.items: list[T] = []
-        self.__a = 1
+        self.__items: list[T] = []
 
         if initial_items is not None:
 
             for item in initial_items:
-                if item not in self.items:
-                    self.items += [item]
+                if item not in self.__items:
+                    self.__items += [item]
 
     def add(self, item: T) -> MySet:
         if item not in self:
-            self.items += [item]
+            self.__items += [item]
         return self
 
     def pop(self) -> T:
-        if len(self.items) == 0:
+        if len(self.__items) == 0:
             raise RuntimeError("Can't pop empty set")
-        return self.items.pop()
+        return self.__items.pop()
 
     def __delitem__(self, item: T) -> None:
         if item in self:
-            self.items.remove(item)
+            self.__items.remove(item)
 
     def __contains__(self, item: T) -> bool:
-        return item in self.items
+        return item in self.__items
 
     def intersect(self, other: MySet) -> MySet:
         intersection: list[T] = []
-        for item in self.items:
+        for item in self.__items:
             if item in other:
                 intersection += [item]
         return MySet(intersection)
 
     def union(self, other: MySet) -> MySet:
-        return MySet(self.items + other.items)
-
-    def __str__(self):
-        return str(self.items)
+        return MySet(self.__items + other.__items)
 
     def __eq__(self, other: MySet) -> bool:
-        other_items = other.items[:]
-        for item in self.items:
+        other_items = other.__items[:]
+        for item in self.__items:
             if item in other_items:
                 other_items.remove(item)
             else:

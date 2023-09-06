@@ -13,10 +13,9 @@
 """
 
 from MySet import *
+from MyStack import *
+from ValidateBrackets import *
 
 if __name__ == "__main__":
-    data = MySet[int]([])
-    data.add(5)
-    data.add("str")
-    print(data)
+    pass
 
