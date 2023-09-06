@@ -2,7 +2,6 @@ import unittest
 from MySet import *
 
 
-# noinspection PyStatementEffect
 class MySetTests(unittest.TestCase):
 
     def test_add_item_to_empty(self) -> None:
@@ -105,10 +104,6 @@ class MySetTests(unittest.TestCase):
         self.assertEqual(initial_1.union(initial_0), MySet[int]([19, 5]))
         initial_1.add(4)
         self.assertEqual(initial_1.union(initial_0), MySet[int]([19, 5, 4]))
-
-
-
-
 
 
 if __name__ == '__main__':

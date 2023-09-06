@@ -68,7 +68,9 @@ class MySet(Generic[T]):
                 return True
             return recursiveSearch(
                 item,
-                items[:middle_index] if item < items[middle_index] else items[middle_index + 1:]
+                items[:middle_index]
+                    if item < items[middle_index]
+                else items[middle_index + 1:]
             )
 
         return recursiveSearch(item, self.__items)
@@ -83,7 +85,8 @@ class MySet(Generic[T]):
             picked: T = items[0]
             items = items[1:]
             return qsort(list(filter(lambda x: x < picked, items))) \
-                   + [picked] + qsort(list(filter(lambda x: x > picked, items)))
+                   + [picked]\
+                   + qsort(list(filter(lambda x: x > picked, items)))
 
         self.__items = qsort(self.__items)
 
