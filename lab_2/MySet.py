@@ -12,13 +12,13 @@ Type Hinting: жестко указанный тип, typing.Any или typing.G
 from __future__ import annotations
 
 import typing
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, Optional
 
 T = TypeVar('T')
 
 
 class MySet(Generic[T]):
-    def __init__(self, initial_items: list[T]) -> None:
+    def __init__(self, initial_items: Optional[list[T]] = None) -> None:
         self.items: list[T] = []
         self.__a = 1
 
