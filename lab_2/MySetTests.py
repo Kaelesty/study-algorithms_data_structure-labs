@@ -69,17 +69,8 @@ class MySetTests(unittest.TestCase):
         del initial[1]
         self.assertEqual(initial, MySet[int]())
 
-    def test_contains_via_linear_search(self) -> None:
-        initial: MySet[int] = MySet[int](are_items_comparable=False)
-        self.assertFalse(5 in initial)
-        initial.add(19).add(1).add(4).add(5).add(6)
-        for item in [1, 4, 5, 6, 19]:
-            self.assertTrue(item in initial)
-        del initial[4]
-        self.assertFalse(4 in initial)
-
-    def test_contains_via_binary_search(self) -> None:
-        initial: MySet[int] = MySet[int](are_items_comparable=True)
+    def test_contains(self) -> None:
+        initial: MySet[int] = MySet[int]()
         self.assertFalse(5 in initial)
         initial.add(19).add(1).add(4).add(5).add(6)
         for item in [1, 4, 5, 6, 19]:

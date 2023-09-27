@@ -15,7 +15,28 @@
 from MySet import *
 from MyStack import *
 from ValidateBrackets import *
+import datetime as dt
+import cProfile
+
+
+def MySet_Benchmark():
+    N: int = 5000
+    set: MySet = MySet()
+    for i in range(N):
+        set.add(i)
+    for i in range(N):
+        i in set
+    for i in range(N):
+        set.pop()
+
+def MyStack_Benchmark():
+    N: int = 1000000
+    stack = MyStack()
+    for i in range(N):
+        stack.push(i)
+    for i in range(N):
+        stack.pop()
 
 if __name__ == "__main__":
-    pass
-
+    cProfile.run(f"MySet_Benchmark()")
+    #cProfile.run(f"MyStack_Benchmark()")
