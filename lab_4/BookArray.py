@@ -1,60 +1,141 @@
-from Array import Array
+"""
+15		5, 11
 
-class BookArray(Array):
+5.	Реализуйте структуру данных «Массив», элементами которого выступают экземпляры класса Book (минимум 10 элементов),
+содержащие следующие поля (автор, издательство, кол-во страниц, стоимость, ISBN).
+Добавьте методы для быстрой сортировки (по возрастанию) по полю «кол-во страниц» и
+сортировки по основанию (по убыванию) по полю «стоимость».
 
-    def countSort(self):
-        k = max(list(map(lambda x: x.isbn, self.elems)))
-        A = self.elems
-        B = [None for i in range(len(self.elems))]
-        P = [0 for i in range(k + 1)]
+11.	Реализуйте структуру данных «Массив», элементами которого выступают экземпляры класса Book (минимум 10 элементов),
+содержащие следующие поля (автор, издательство, кол-во страниц, стоимость, ISBN).
+Добавьте методы для сортировки вставками (по возрастанию) по полю «стоимость» и
+сортировки слиянием (по убыванию) по полю «автор».
+"""
+from __future__ import annotations
 
-        for elem in A:
-            P[elem.isbn] += 1
+from entities.Book import *
+from typing import Optional, Union
 
-        P = [sum(P[:i-1]) for i in range(len(P))]
-        P = [0] + P[:-1]
 
-        for i in range(len(A)):
-            B[P[A[i].isbn]] = A[i]
-            P[A[i].isbn] += 1
+class BookArray:
 
-        self.elems = B
+    def __init__(self, initial_items: Optional[list[Book]] = None,len_: Optional[int] = None,) -> None:
+        if len_ is not None and initial_items is not None:
+            raise RuntimeError("BookArray constructor must get the length OR initial elements")
+        if len_ is not None:
+            self.items: list[Union[Book, None]] = [None for _ in range(len_)]
+        else:
+            self.items: list[Union[Book, None]] = initial_items
 
-    def mergeSort(self):
-        self.elems = self.mergeSortRecursive(self.elems)
+    def __getitem__(self, index: int) -> Union[Book, None]:
+        return self.items[index]
 
-    def mergeSortRecursive(self, toSort):
-        if len(toSort) in (0, 1):
-            return toSort
-        leftPart = self.mergeSortRecursive(toSort[:len(toSort) // 2])
-        rightPart = self.mergeSortRecursive(toSort[len(toSort) // 2:])
+    def __delitem__(self, index: int) -> None:
+        self.items[index] = None
 
-        result = []
-        while True:
-            if len(leftPart) != 0:
-                leftElem = leftPart[0]
-            else:
-                leftElem = None
+    def __contains__(self, item: Book) -> bool:
+        return item in self.items
 
-            if len(rightPart) != 0:
-                rightElem = rightPart[0]
-            else:
-                rightElem = None
+    def __eq__(self, other: BookArray) -> bool:
+        return self.items == other.items
 
-            if leftElem is None and rightElem is None:
-                break
+    def __len__(self) -> int:
+        return len(self.items)
 
-            if leftElem is None:
-                result += [rightElem]
-                rightPart = rightPart[1:]
-            elif rightElem is None:
-                result += [leftElem]
-                leftPart = leftPart[1:]
-            else:
-                if rightElem.publisher < leftElem.publisher:
-                    result += [rightElem]
-                    rightPart = rightPart[1:]
+    def qsort_pages(self) -> BookArray:
+        none_counter: int = self.items.count(None)
+        self.items = list(filter(lambda x: x is not None, self.items))
+
+        def qsort(items: list[Book]):
+            if len(items) in (1, 0):
+                return items
+            return (qsort(list(
+                filter(lambda x: x.pages <= items[0].pages, items[1:])))
+                    + [items[0]]
+                    + qsort(list(
+                filter(lambda x: x.pages > items[0].pages, items[1:]))))
+        self.items = qsort(self.items) + [None for _ in range(none_counter)]
+        return self
+
+    def radix_cost(self) -> BookArray:
+
+        if len(self.items) == 0: return self
+
+        none_counter: int = self.items.count(None)
+        self.items = list(filter(lambda x: x is not None, self.items))
+
+        def int_len(num: int) -> int:
+            return len(str(num))
+
+        def int_digit(num: int, index: int) -> int:
+            try:
+                return int(str(num)[index])
+            except IndexError:
+                return 0
+
+        longest_num = int_len(max(list(map(lambda x: x.cost, self.items))))
+        intermediate_array: list[list[int]] = [[] for _ in range(10)]
+        for digit in range(-1, -longest_num - 1, -1):
+            for item in self.items:
+                index: int = int_digit(item.cost, digit)
+                intermediate_array[index] += [item]
+            self.items = sum(intermediate_array, [])
+            intermediate_array = [[] for _ in range(10)]
+
+        self.items.reverse()
+        self.items += [None for _ in range(none_counter)]
+        return self
+
+    def insertion_pages(self) -> BookArray:
+
+        none_counter: int = self.items.count(None)
+        self.items = list(filter(lambda x: x is not None, self.items))
+        sorted_: list[Book] = []
+        while len(self.items) != 0:
+            item = self.items[0]
+            self.items = self.items[1:]
+            if len(sorted_) == 0:
+                sorted_ = [item]
+                continue
+            if item.pages <= sorted_[0].pages:
+                sorted_ = [item] + sorted_
+                continue
+            if item.pages >= sorted_[-1].pages:
+                sorted_ = sorted_ + [item]
+                continue
+            for i, elem in enumerate(sorted_):
+                if elem.pages <= item.pages < sorted_[i + 1].pages:
+                    sorted_.insert(i + 1, item)
+                    break
+        self.items = sorted_
+        self.items += [None for _ in range(none_counter)]
+        return self
+
+    def merge_authors(self) -> BookArray:
+
+        none_counter: int = self.items.count(None)
+        self.items = list(filter(lambda x: x is not None, self.items))
+
+        def merge(items: list[Book]) -> list[Book]:
+            if len(items) in (1, 0):
+                return items
+            first_half: list[Book] = merge(items[:len(items) // 2])
+            second_half: list[Book] = merge(items[len(items) // 2:])
+            for i in range(len(items)):
+                if len(second_half) == 0:
+                    items[i] = first_half[0]
+                    first_half = first_half[1:]
+                elif len(first_half) == 0:
+                    items[i] = second_half[0]
+                    second_half = second_half[1:]
+                elif first_half[0].author > second_half[0].author:
+                    items[i] = first_half[0]
+                    first_half = first_half[1:]
                 else:
-                    result += [leftElem]
-                    leftPart = leftPart[1:]
-        return result
+                    items[i] = second_half[0]
+                    second_half = second_half[1:]
+            return items
+
+        self.items = merge(self.items)
+        self.items += [None for _ in range(none_counter)]
+        return self
