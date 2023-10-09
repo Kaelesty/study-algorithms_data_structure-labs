@@ -1,23 +1,42 @@
+"""
+(автор, издательство, кол-во страниц, стоимость, ISBN)
+"""
+from dataclasses import dataclass
 from random import randint
 
 
+@dataclass
 class Book:
-    def __init__(self, author, publisher, pages, price, isbn):
-        self.author = author
-        self.publisher = publisher
-        self.pages = pages
-        self.price = price
-        self.isbn = isbn
-
-    def __str__(self):
-        return f"[{self.isbn}]"
+    author: str
+    publisher: str
+    pages: int
+    cost: int
+    isbn: str
 
 
-def getRandomBook():
+def get_random_book() -> Book:
     return Book(
-        f"Author #{randint(0, 50)}",
-        f"Publisher #{randint(0, 50)}",
-        randint(0, 50),
-        randint(0, 50),
-        randint(0, 50),
+        f"author #{randint(0, 2000)}",
+        f"publisher #{randint(0, 2000)}",
+        randint(30, 2000),
+        randint(0, 2000),
+        f"{randint(1, 9)}-{randint(1000, 9999)}-{randint(1000, 9999)}-{randint(1, 9)}"
     )
+
+
+def get_random_book_with_pages(pages: int) -> Book:
+    book: Book = get_random_book()
+    book.pages = pages
+    return book
+
+
+def get_random_book_with_cost(cost: int) -> Book:
+    book: Book = get_random_book()
+    book.cost = cost
+    return book
+
+
+def get_random_book_with_author(author: int) -> Book:
+    book: Book = get_random_book()
+    book.author = str(author)
+    return book
